@@ -1,6 +1,6 @@
 {
   "name": "jarvis-shell",
-  "version": "1.0.0",
+  "version": "0.3.1",
   "description": "An Electron application with React and TypeScript",
   "main": "./out/main/index.js",
   "author": "example.com",
@@ -27,7 +27,6 @@
     "better-sqlite3": "^12.9.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "electron-updater": "^6.8.3",
     "lucide-react": "^1.8.0",
     "radix-ui": "^1.4.3",
     "tailwind-merge": "^3.5.0",

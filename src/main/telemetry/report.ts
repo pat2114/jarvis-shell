@@ -17,6 +17,10 @@ export type TelemetryReport = {
 }
 
 function getTelemetryToken(): string | null {
+  // Injected at build time by electron-vite from MAIN_VITE_JARVIS_TELEMETRY_TOKEN.
+  const fromBuild = import.meta.env.MAIN_VITE_JARVIS_TELEMETRY_TOKEN
+  if (typeof fromBuild === 'string' && fromBuild.trim()) return fromBuild.trim()
+  // Runtime fallback for dev sessions that set JARVIS_TELEMETRY_TOKEN.
   const fromEnv = process.env.JARVIS_TELEMETRY_TOKEN
   if (fromEnv && fromEnv.trim()) return fromEnv.trim()
   return null

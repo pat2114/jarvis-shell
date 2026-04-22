@@ -43,8 +43,7 @@ linux:
 appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
-publish:
-  provider: github
-  owner: pat2114
-  repo: jarvis-shell
-  releaseType: release
+# Note: `publish:` block was removed when the in-house zip-based updater replaced
+# electron-updater. The custom updater in src/main/update/manager.ts fetches
+# releases directly from the GitHub REST API. Re-add a publish block here if we
+# migrate back to electron-updater / NSIS in the future.
