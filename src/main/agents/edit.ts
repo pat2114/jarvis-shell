@@ -23,7 +23,7 @@ const SCHEMA = {
   additionalProperties: false,
   properties: {
     videoUrl: { type: 'string' },
-    durationSeconds: { type: 'number', minimum: 20, maximum: 35 },
+    durationSeconds: { type: 'number', minimum: 8, maximum: 1810 },
     format: { type: 'string' }
   }
 }

@@ -10,10 +10,9 @@ export function Checkpoint4Panel({
   onApprove,
   onRevise
 }: CheckpointPanelProps): React.JSX.Element | null {
-  const visuals = projectState.steps.find((s) => s.stepId === 'agent-5')?.output as
-    | VisualAsset[]
-    | null
-    | undefined
+  const step = projectState.steps.find((s) => s.stepId === 'agent-5')
+  const visuals = step?.output as VisualAsset[] | null | undefined
+  const reviewerFlag = step?.reviewerFlag ?? null
   if (!visuals) return null
 
   return (
@@ -24,6 +23,11 @@ export function Checkpoint4Panel({
       onApprove={onApprove}
       onRevise={onRevise}
     >
+      {reviewerFlag && (
+        <div className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
+          Internal quality check flagged this — review carefully.
+        </div>
+      )}
       <StubBanner>
         These are stubs — real visuals need an image-generation API key wired in.
       </StubBanner>
@@ -35,7 +39,11 @@ export function Checkpoint4Panel({
               <div className="flex items-center justify-between gap-2">
                 <CardTitle className="text-sm">Scene {asset.sceneOrder}</CardTitle>
                 <Badge variant={asset.source === 'existing' ? 'secondary' : 'outline'}>
-                  {asset.source === 'existing' ? 'Existing' : 'Generated'}
+                  {asset.source === 'existing'
+                    ? 'Existing'
+                    : asset.source === 'stub'
+                      ? 'Stub'
+                      : 'Generated'}
                 </Badge>
               </div>
             </CardHeader>

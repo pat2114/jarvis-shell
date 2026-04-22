@@ -36,18 +36,29 @@ export type ProjectState = {
     websiteUrl: string
     createdAt: number
     currentStepId: StepId
+    durationSeconds: number
   }
   steps: StepRecord[]
 }
 
-export function initProject(input: { companyName: string; websiteUrl: string }): ProjectState {
+function clampDuration(input: number | undefined): number {
+  const raw = typeof input === 'number' && Number.isFinite(input) ? Math.round(input) : 30
+  return Math.max(10, Math.min(1800, raw))
+}
+
+export function initProject(input: {
+  companyName: string
+  websiteUrl: string
+  durationSeconds?: number
+}): ProjectState {
   const id = `proj_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
   const firstStep = PIPELINE_STEPS[0]
   const project = createProject({
     id,
     companyName: input.companyName,
     websiteUrl: input.websiteUrl,
-    currentStepId: firstStep.id
+    currentStepId: firstStep.id,
+    durationSeconds: clampDuration(input.durationSeconds)
   })
   for (const step of PIPELINE_STEPS) {
     upsertStep({
@@ -70,16 +81,26 @@ export async function executeStep(projectId: string, stepId: StepId): Promise<St
   if (!step) throw new Error(`unknown step: ${stepId}`)
   if (step.kind !== 'agent') throw new Error(`step ${stepId} is a checkpoint, not an agent`)
 
-  upsertStep({ projectId, stepId, status: 'running' })
+  upsertStep({ projectId, stepId, status: 'running', reviewerFlag: null })
   setCurrentStep(projectId, stepId)
   emitUpdate(projectId)
 
   try {
-    const output = await runAgent(step, projectId)
+    const result = await runAgent(step, projectId)
+    const output = result.output
+    const reviewerFlag = result.reviewerFlag ?? null
     const nextDef = nextStep(stepId)
     const hasCheckpointNext = nextDef?.kind === 'checkpoint' && nextDef.reviewsOutputOf === stepId
     const finalStatus = hasCheckpointNext ? 'awaiting-review' : 'approved'
-    upsertStep({ projectId, stepId, status: finalStatus, output, feedback: null, errorMessage: null })
+    upsertStep({
+      projectId,
+      stepId,
+      status: finalStatus,
+      output,
+      feedback: null,
+      errorMessage: null,
+      reviewerFlag
+    })
     if (hasCheckpointNext && nextDef) {
       upsertStep({ projectId, stepId: nextDef.id, status: 'awaiting-review' })
       setCurrentStep(projectId, nextDef.id)

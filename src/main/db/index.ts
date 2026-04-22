@@ -16,6 +16,7 @@ function getDb(): Database.Database {
   db.pragma('journal_mode = WAL')
   db.pragma('foreign_keys = ON')
   db.exec(SCHEMA_SQL)
+  runMigrations(db)
   return db
 }
 
@@ -25,7 +26,8 @@ CREATE TABLE IF NOT EXISTS projects (
   company_name TEXT NOT NULL,
   website_url TEXT NOT NULL,
   created_at INTEGER NOT NULL,
-  current_step_id TEXT NOT NULL
+  current_step_id TEXT NOT NULL,
+  duration_seconds INTEGER NOT NULL DEFAULT 30
 );
 
 CREATE TABLE IF NOT EXISTS step_records (
@@ -36,11 +38,30 @@ CREATE TABLE IF NOT EXISTS step_records (
   feedback TEXT,
   error_message TEXT,
   updated_at INTEGER NOT NULL,
+  reviewer_flag TEXT,
   PRIMARY KEY (project_id, step_id)
 );
 
 CREATE INDEX IF NOT EXISTS idx_step_records_project ON step_records(project_id);
 `
+
+function runMigrations(handle: Database.Database): void {
+  const projectCols = handle
+    .prepare(`PRAGMA table_info(projects)`)
+    .all() as { name: string }[]
+  if (!projectCols.some((c) => c.name === 'duration_seconds')) {
+    handle.exec(
+      `ALTER TABLE projects ADD COLUMN duration_seconds INTEGER NOT NULL DEFAULT 30`
+    )
+  }
+
+  const stepCols = handle
+    .prepare(`PRAGMA table_info(step_records)`)
+    .all() as { name: string }[]
+  if (!stepCols.some((c) => c.name === 'reviewer_flag')) {
+    handle.exec(`ALTER TABLE step_records ADD COLUMN reviewer_flag TEXT`)
+  }
+}
 
 type ProjectRow = {
   id: string
@@ -48,6 +69,7 @@ type ProjectRow = {
   website_url: string
   created_at: number
   current_step_id: string
+  duration_seconds: number
 }
 
 type StepRow = {
@@ -58,6 +80,7 @@ type StepRow = {
   feedback: string | null
   error_message: string | null
   updated_at: number
+  reviewer_flag: string | null
 }
 
 function rowToProject(row: ProjectRow): Project {
@@ -66,7 +89,8 @@ function rowToProject(row: ProjectRow): Project {
     companyName: row.company_name,
     websiteUrl: row.website_url,
     createdAt: row.created_at,
-    currentStepId: row.current_step_id
+    currentStepId: row.current_step_id,
+    durationSeconds: row.duration_seconds
   }
 }
 
@@ -78,7 +102,8 @@ function rowToStep(row: StepRow): StepRecord {
     output: row.output ? JSON.parse(row.output) : null,
     feedback: row.feedback,
     errorMessage: row.error_message,
-    updatedAt: row.updated_at
+    updatedAt: row.updated_at,
+    reviewerFlag: row.reviewer_flag ? JSON.parse(row.reviewer_flag) : null
   }
 }
 
@@ -101,20 +126,29 @@ export function createProject(input: {
   companyName: string
   websiteUrl: string
   currentStepId: StepId
+  durationSeconds: number
 }): Project {
   const createdAt = Date.now()
   getDb()
     .prepare(
-      `INSERT INTO projects (id, company_name, website_url, created_at, current_step_id)
-       VALUES (?, ?, ?, ?, ?)`
+      `INSERT INTO projects (id, company_name, website_url, created_at, current_step_id, duration_seconds)
+       VALUES (?, ?, ?, ?, ?, ?)`
     )
-    .run(input.id, input.companyName, input.websiteUrl, createdAt, input.currentStepId)
+    .run(
+      input.id,
+      input.companyName,
+      input.websiteUrl,
+      createdAt,
+      input.currentStepId,
+      input.durationSeconds
+    )
   return {
     id: input.id,
     companyName: input.companyName,
     websiteUrl: input.websiteUrl,
     createdAt,
-    currentStepId: input.currentStepId
+    currentStepId: input.currentStepId,
+    durationSeconds: input.durationSeconds
   }
 }
 
@@ -145,19 +179,27 @@ export function upsertStep(record: {
   output?: unknown
   feedback?: string | null
   errorMessage?: string | null
+  reviewerFlag?: { reasons: string[]; attempts: number } | null
 }): void {
   const serialized =
     record.output !== undefined ? JSON.stringify(record.output ?? null) : null
+  const reviewerFlagSerialized =
+    record.reviewerFlag === undefined
+      ? null
+      : record.reviewerFlag === null
+        ? null
+        : JSON.stringify(record.reviewerFlag)
   getDb()
     .prepare(
-      `INSERT INTO step_records (project_id, step_id, status, output, feedback, error_message, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?)
+      `INSERT INTO step_records (project_id, step_id, status, output, feedback, error_message, updated_at, reviewer_flag)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT(project_id, step_id) DO UPDATE SET
          status = excluded.status,
          output = COALESCE(excluded.output, step_records.output),
          feedback = excluded.feedback,
          error_message = excluded.error_message,
-         updated_at = excluded.updated_at`
+         updated_at = excluded.updated_at,
+         reviewer_flag = excluded.reviewer_flag`
     )
     .run(
       record.projectId,
@@ -166,7 +208,8 @@ export function upsertStep(record: {
       serialized,
       record.feedback ?? null,
       record.errorMessage ?? null,
-      Date.now()
+      Date.now(),
+      reviewerFlagSerialized
     )
 }
 

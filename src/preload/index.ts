@@ -36,8 +36,11 @@ const api = {
     listProjects: (): Promise<unknown> => ipcRenderer.invoke('pipeline:list-projects'),
     getState: (projectId: string): Promise<unknown> =>
       ipcRenderer.invoke('pipeline:get-state', projectId),
-    createProject: (input: { companyName: string; websiteUrl: string }): Promise<unknown> =>
-      ipcRenderer.invoke('pipeline:create-project', input),
+    createProject: (input: {
+      companyName: string
+      websiteUrl: string
+      durationSeconds: number
+    }): Promise<unknown> => ipcRenderer.invoke('pipeline:create-project', input),
     approve: (projectId: string, checkpointId: string): Promise<unknown> =>
       ipcRenderer.invoke('pipeline:approve', { projectId, checkpointId }),
     revise: (projectId: string, checkpointId: string, feedback: string): Promise<unknown> =>

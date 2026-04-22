@@ -6,6 +6,7 @@ export type Project = {
   websiteUrl: string
   createdAt: number
   currentStepId: StepId
+  durationSeconds: number
 }
 
 export type StepRecord = {
@@ -18,6 +19,8 @@ export type StepRecord = {
   feedback: string | null
   errorMessage: string | null
   updatedAt: number
+  /** Set when the internal reviewer exhausted its retries but we still accepted the output. */
+  reviewerFlag?: { reasons: string[]; attempts: number } | null
 }
 
 export type CompanyResearch = {
@@ -31,11 +34,29 @@ export type CompanyResearch = {
   socialLinks: { label: string; url: string }[]
 }
 
+export type ContinuityKit = {
+  setDescription: string
+  characters: {
+    role: string
+    appearance: string
+    wardrobe: string
+    signatureDetails: string
+  }[]
+  styleAnchors: {
+    cameraFeel: string
+    colorPalette: string
+    lightingNotes: string
+    pacing: string
+  }
+  referenceImageUrls: string[]
+}
+
 export type CampaignAnalysis = {
   coreMessage: string
   targetAudience: string
   adMessage: string
   videoStyle: string
+  continuityKit: ContinuityKit
 }
 
 export type AdScript = {
@@ -45,10 +66,25 @@ export type AdScript = {
   onScreenText: string[]
 }
 
+export type ShotType =
+  | 'wide'
+  | 'medium'
+  | 'close'
+  | 'extreme-close'
+  | 'over-shoulder'
+  | 'pov'
+  | 'tracking'
+  | 'aerial'
+
+export type CameraMovement = 'static' | 'pan' | 'dolly' | 'handheld' | 'zoom'
+
 export type StoryboardScene = {
   order: number
   sceneText: string
   visualDescription: string
+  shotType: ShotType
+  cameraMovement: CameraMovement
+  composition: string
   source: 'existing' | 'generated'
   durationSeconds: number
 }
@@ -61,7 +97,7 @@ export type Storyboard = {
 export type VisualAsset = {
   sceneOrder: number
   kind: 'image' | 'video'
-  source: 'existing' | 'generated'
+  source: 'existing' | 'generated' | 'stub'
   url: string
   note?: string
 }
@@ -70,6 +106,7 @@ export type VoiceOverOutput = {
   audioUrl: string
   durationSeconds: number
   voice: string
+  source?: 'generated' | 'stub'
 }
 
 export type MusicOutput = {
@@ -77,12 +114,14 @@ export type MusicOutput = {
   durationSeconds: number
   prompt: string
   style: string
+  source?: 'generated' | 'stub'
 }
 
 export type VideoSceneOutput = {
   sceneOrder: number
   videoUrl: string
   durationSeconds: number
+  source?: 'generated' | 'stub'
 }
 
 export type FinalCut = {
@@ -115,6 +154,12 @@ export type DeliveryReceipt = {
   sent: boolean
   deliveredAt: number | null
   downloadUrl: string | null
+}
+
+export type ReviewerVerdict = {
+  approved: boolean
+  reasons: string[]
+  regressionRisk?: 'low' | 'medium' | 'high'
 }
 
 /** Output shape per step ID. Keep in sync with agent implementations. */

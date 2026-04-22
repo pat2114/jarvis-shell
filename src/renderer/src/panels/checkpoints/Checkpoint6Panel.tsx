@@ -10,10 +10,9 @@ export function Checkpoint6Panel({
   onApprove,
   onRevise
 }: CheckpointPanelProps): React.JSX.Element | null {
-  const scenes = projectState.steps.find((s) => s.stepId === 'agent-7')?.output as
-    | VideoSceneOutput[]
-    | null
-    | undefined
+  const step = projectState.steps.find((s) => s.stepId === 'agent-7')
+  const scenes = step?.output as VideoSceneOutput[] | null | undefined
+  const reviewerFlag = step?.reviewerFlag ?? null
   if (!scenes) return null
 
   return (
@@ -24,6 +23,11 @@ export function Checkpoint6Panel({
       onApprove={onApprove}
       onRevise={onRevise}
     >
+      {reviewerFlag && (
+        <div className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
+          Internal quality check flagged this — review carefully.
+        </div>
+      )}
       <StubBanner>Stub — real video generation needs a Runway, Sora, or Veo API key.</StubBanner>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">

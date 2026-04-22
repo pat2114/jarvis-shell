@@ -1,4 +1,6 @@
 import type {
+  AdScript,
+  CampaignAnalysis,
   MusicOutput,
   Storyboard,
   VideoSceneOutput,
@@ -13,31 +15,39 @@ const STUB_AUDIO = 'about:blank#stub-audio'
 
 export async function runVisualsStub(ctx: PipelineContext): Promise<VisualAsset[]> {
   const story = requireOutput<Storyboard>(ctx, 'agent-4', 'storyboard')
+  // Continuity kit is the shape each real call would consume; read it now so
+  // downstream wiring stays stable when real image-gen APIs land.
+  const analysis = requireOutput<CampaignAnalysis>(ctx, 'agent-2', 'campaign analysis')
+  void analysis.continuityKit
   return story.scenes.map((scene) => ({
     sceneOrder: scene.order,
     kind: 'image' as const,
-    source: scene.source,
+    source: 'stub' as const,
     url: STUB_IMAGE,
     note:
       'Stub: real Agent 5 needs an image-gen API key (Flux / Imagen / DALL·E / Stable Diffusion).'
   }))
 }
 
-export async function runVoiceStub(_ctx: PipelineContext): Promise<VoiceOverOutput> {
+export async function runVoiceStub(ctx: PipelineContext): Promise<VoiceOverOutput> {
+  const script = requireOutput<AdScript>(ctx, 'agent-3', 'script')
+  void script
   return {
     audioUrl: STUB_AUDIO,
-    durationSeconds: 28,
-    voice: 'stub-voice (real agent needs ElevenLabs / Hume key)'
+    durationSeconds: ctx.durationSeconds,
+    voice: 'stub-voice (real agent needs ElevenLabs / Hume key)',
+    source: 'stub'
   }
 }
 
-export async function runMusicStub(_ctx: PipelineContext): Promise<MusicOutput> {
+export async function runMusicStub(ctx: PipelineContext): Promise<MusicOutput> {
   return {
     audioUrl: STUB_AUDIO,
-    durationSeconds: 30,
+    durationSeconds: ctx.durationSeconds,
     prompt:
       'warm acoustic bed with soft percussion, major key, rises subtly under the CTA (stub prompt)',
-    style: 'stub (real agent needs Suno or Udio key)'
+    style: 'stub (real agent needs Suno or Udio key)',
+    source: 'stub'
   }
 }
 
@@ -46,6 +56,7 @@ export async function runVideoGenStub(ctx: PipelineContext): Promise<VideoSceneO
   return story.scenes.map((scene) => ({
     sceneOrder: scene.order,
     videoUrl: STUB_VIDEO,
-    durationSeconds: scene.durationSeconds
+    durationSeconds: scene.durationSeconds,
+    source: 'stub' as const
   }))
 }

@@ -10,10 +10,9 @@ export function Checkpoint5aPanel({
   onApprove,
   onRevise
 }: CheckpointPanelProps): React.JSX.Element | null {
-  const music = projectState.steps.find((s) => s.stepId === 'agent-6a')?.output as
-    | MusicOutput
-    | null
-    | undefined
+  const step = projectState.steps.find((s) => s.stepId === 'agent-6a')
+  const music = step?.output as MusicOutput | null | undefined
+  const reviewerFlag = step?.reviewerFlag ?? null
   if (!music) return null
 
   return (
@@ -24,6 +23,11 @@ export function Checkpoint5aPanel({
       onApprove={onApprove}
       onRevise={onRevise}
     >
+      {reviewerFlag && (
+        <div className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
+          Internal quality check flagged this — review carefully.
+        </div>
+      )}
       <StubBanner>Stub — real music generation needs a Suno or Udio API key.</StubBanner>
 
       <Card>

@@ -21,7 +21,11 @@ type PipelineContextValue = {
   projectId: string | null
   state: ProjectState | null
   loading: boolean
-  createProject: (companyName: string, websiteUrl: string) => Promise<void>
+  createProject: (
+    companyName: string,
+    websiteUrl: string,
+    durationSeconds: number
+  ) => Promise<void>
   approve: (checkpointId: StepId) => Promise<void>
   revise: (checkpointId: StepId, feedback: string) => Promise<void>
   resetProject: () => void
@@ -99,15 +103,19 @@ export function PipelineProvider({ children }: { children: ReactNode }): React.J
     return unsubscribe
   }, [])
 
-  const createProject = useCallback(async (companyName: string, websiteUrl: string) => {
-    const result = (await window.api.pipeline.createProject({
-      companyName,
-      websiteUrl
-    })) as ProjectState
-    writeStoredProjectId(result.project.id)
-    setProjectId(result.project.id)
-    setState(result)
-  }, [])
+  const createProject = useCallback(
+    async (companyName: string, websiteUrl: string, durationSeconds: number) => {
+      const result = (await window.api.pipeline.createProject({
+        companyName,
+        websiteUrl,
+        durationSeconds
+      })) as ProjectState
+      writeStoredProjectId(result.project.id)
+      setProjectId(result.project.id)
+      setState(result)
+    },
+    []
+  )
 
   const approve = useCallback(
     async (checkpointId: StepId) => {

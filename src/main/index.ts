@@ -166,7 +166,10 @@ app.whenReady().then(() => {
 
   ipcMain.handle(
     'pipeline:create-project',
-    async (_evt, input: { companyName: string; websiteUrl: string }) => {
+    async (
+      _evt,
+      input: { companyName: string; websiteUrl: string; durationSeconds?: number }
+    ) => {
       const state = initProject(input)
       void executeStep(state.project.id, state.project.currentStepId).catch(() => {
         /* errors persisted */

@@ -1,8 +1,9 @@
-import { useState, type FormEvent } from 'react'
+import { useMemo, useState, type FormEvent } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { usePipeline } from '@/pipeline/usePipeline'
+import { estimateCost } from '@/pipeline/costEstimate'
 import { Loader2, Sparkles } from 'lucide-react'
 
 function isValidUrl(value: string): boolean {
@@ -14,12 +15,43 @@ function isValidUrl(value: string): boolean {
   }
 }
 
+type Preset = { label: string; seconds: number }
+const PRESETS: Preset[] = [
+  { label: '30s', seconds: 30 },
+  { label: '60s', seconds: 60 },
+  { label: '3 min', seconds: 180 },
+  { label: '10 min', seconds: 600 }
+]
+
+function clampDuration(raw: number): number {
+  if (!Number.isFinite(raw)) return 30
+  return Math.max(10, Math.min(1800, Math.round(raw)))
+}
+
 export function ProjectStartPanel(): React.JSX.Element {
   const { createProject } = usePipeline()
   const [companyName, setCompanyName] = useState('')
   const [websiteUrl, setWebsiteUrl] = useState('')
+  const [durationSeconds, setDurationSeconds] = useState<number>(30)
+  const [durationInput, setDurationInput] = useState<string>('30')
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+
+  const cost = useMemo(() => estimateCost({ durationSeconds }), [durationSeconds])
+  const overLong = durationSeconds > 180
+
+  const applyPreset = (seconds: number): void => {
+    setDurationSeconds(seconds)
+    setDurationInput(String(seconds))
+  }
+
+  const onDurationChange = (value: string): void => {
+    setDurationInput(value)
+    const parsed = Number(value)
+    if (Number.isFinite(parsed) && parsed > 0) {
+      setDurationSeconds(clampDuration(parsed))
+    }
+  }
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault()
@@ -38,7 +70,7 @@ export function ProjectStartPanel(): React.JSX.Element {
 
     setSubmitting(true)
     try {
-      await createProject(name, url)
+      await createProject(name, url, clampDuration(durationSeconds))
     } catch (err) {
       setError((err as Error).message || 'Something went wrong — try again.')
     } finally {
@@ -93,6 +125,53 @@ export function ProjectStartPanel(): React.JSX.Element {
                 inputMode="url"
               />
             </div>
+
+            <div className="flex flex-col gap-2">
+              <label
+                htmlFor="duration-seconds"
+                className="text-xs font-medium uppercase tracking-wider text-muted-foreground"
+              >
+                Length
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {PRESETS.map((p) => (
+                  <Button
+                    key={p.seconds}
+                    type="button"
+                    variant={durationSeconds === p.seconds ? 'default' : 'outline'}
+                    onClick={() => applyPreset(p.seconds)}
+                    disabled={submitting}
+                  >
+                    {p.label}
+                  </Button>
+                ))}
+              </div>
+              <div className="flex items-center gap-2">
+                <Input
+                  id="duration-seconds"
+                  type="number"
+                  min={10}
+                  max={1800}
+                  value={durationInput}
+                  onChange={(e) => onDurationChange(e.target.value)}
+                  disabled={submitting}
+                  className="max-w-[8rem]"
+                />
+                <span className="text-sm text-muted-foreground">seconds</span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                About ~{cost.shotCount} shots, ${cost.lowUSD}–{cost.highUSD} including internal
+                retries.
+              </p>
+            </div>
+
+            {overLong && (
+              <div className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
+                Videos over 3 minutes may show cross-shot drift — faces, wardrobe, or set details
+                can shift between cuts. Use your judgment; you can always mark specific shots as
+                &apos;use existing footage&apos; at Checkpoint 4.
+              </div>
+            )}
 
             {error && (
               <div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
