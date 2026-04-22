@@ -18,9 +18,9 @@ export type UpdateState =
 
 type Broadcaster = (state: UpdateState) => void
 
-const GITHUB_RELEASES_URL = 'https://api.github.com/repos/pat2114/jarvis-shell/releases/latest'
-const ASSET_NAME = 'JarvisShell-windows-x64.zip'
-const USER_AGENT = 'jarvis-shell-updater'
+const GITHUB_RELEASES_URL = 'https://api.github.com/repos/pat2114/atelier/releases/latest'
+const ASSET_NAME = 'Atelier-windows-x64.zip'
+const USER_AGENT = 'atelier-updater'
 const CHECK_INTERVAL_MS = 30 * 60 * 1000
 const INITIAL_CHECK_DELAY_MS = 15_000
 

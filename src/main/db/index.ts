@@ -11,7 +11,7 @@ function getDb(): Database.Database {
   if (db) return db
   const userDataDir = app.getPath('userData')
   mkdirSync(userDataDir, { recursive: true })
-  const dbPath = join(userDataDir, 'jarvis.sqlite')
+  const dbPath = join(userDataDir, 'atelier.sqlite')
   db = new Database(dbPath)
   db.pragma('journal_mode = WAL')
   db.pragma('foreign_keys = ON')

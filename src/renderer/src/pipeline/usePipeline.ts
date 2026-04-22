@@ -27,7 +27,7 @@ type PipelineContextValue = {
   resetProject: () => void
 }
 
-const STORAGE_KEY = 'jarvis.projectId'
+const STORAGE_KEY = 'atelier.projectId'
 
 function readStoredProjectId(): string | null {
   try {

@@ -25,7 +25,7 @@ export function SettingsPanel(): React.JSX.Element {
       <SectionWrap>
         <ChecksList
           heading="Required"
-          description="Core dependencies Jarvis needs to run."
+          description="Core dependencies Atelier needs to run."
           tone="required"
           checks={required}
           showRecheck

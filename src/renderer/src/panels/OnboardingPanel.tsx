@@ -59,7 +59,7 @@ export function OnboardingPanel(): React.JSX.Element {
           <Sparkles className="size-3.5" />
           Setup
         </div>
-        <h1 className="text-2xl font-semibold">Set up Jarvis</h1>
+        <h1 className="text-2xl font-semibold">Set up Atelier</h1>
         <p className="text-sm text-muted-foreground">
           A couple of dependencies and (optional) API keys. Nothing leaves your machine except the
           calls you make.
@@ -87,7 +87,7 @@ export function OnboardingPanel(): React.JSX.Element {
       <SectionWrap>
         <ChecksList
           heading="Required"
-          description="These must be working before Jarvis can run."
+          description="These must be working before Atelier can run."
           tone="required"
           checks={required}
           showRecheck

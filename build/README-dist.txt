@@ -9,7 +9,7 @@ the work.
 FIRST-TIME SETUP
 ----------------
 
-Double-click   jarvis-shell.exe   (in this folder).
+Double-click   Atelier.exe   (in this folder).
 
 Windows may show "Windows protected your PC" — click "More info"
 then "Run anyway". Only needed the first time.
@@ -98,7 +98,7 @@ TROUBLESHOOTING
     but not your API keys.
 
 - SmartScreen keeps blocking:
-    Right-click jarvis-shell.exe → Properties → Unblock → Apply.
+    Right-click Atelier.exe → Properties → Unblock → Apply.
 
 
 PRIVACY

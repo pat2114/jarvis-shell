@@ -3,7 +3,7 @@ import { logger, tailLog } from '../log/logger'
 import { getProjectState } from '../pipeline/runner'
 import { getKey } from '../setup/keyStore'
 
-const ISSUE_ENDPOINT = 'https://api.github.com/repos/pat2114/jarvis-shell/issues'
+const ISSUE_ENDPOINT = 'https://api.github.com/repos/pat2114/atelier/issues'
 
 export type TelemetryReport = {
   id: string
@@ -102,7 +102,7 @@ export async function sendTelemetry(input: Omit<TelemetryReport, 'id' | 'appVers
         Accept: 'application/vnd.github+json',
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
-        'User-Agent': 'jarvis-shell-telemetry'
+        'User-Agent': 'atelier-telemetry'
       },
       body: JSON.stringify({
         title,

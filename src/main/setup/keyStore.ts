@@ -68,7 +68,7 @@ export const KEY_CATALOG: KeyMeta[] = [
     slot: 'githubTelemetryToken',
     label: 'GitHub crash-report token (advanced)',
     description:
-      'Optional. Atelier has a built-in token for auto-reporting crashes — if it ever expires or hits a limit, paste your own fine-grained PAT here to keep auto-reporting working. Needs Issues: Read and write on pat2114/jarvis-shell (or your fork).',
+      'Optional. Atelier has a built-in token for auto-reporting crashes — if it ever expires or hits a limit, paste your own fine-grained PAT here to keep auto-reporting working. Needs Issues: Read and write on pat2114/atelier (or your fork).',
     docsUrl:
       'https://github.com/settings/personal-access-tokens/new?description=Atelier+crash+reports',
     usedBy: ['Crash reporting fallback'],

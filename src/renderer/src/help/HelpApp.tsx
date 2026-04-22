@@ -23,7 +23,7 @@ let idCounter = 0
 
 function readProjectId(): string | null {
   try {
-    return window.localStorage.getItem('jarvis.projectId')
+    return window.localStorage.getItem('atelier.projectId')
   } catch {
     return null
   }

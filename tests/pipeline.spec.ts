@@ -2,7 +2,7 @@ import { test, expect } from './helpers/electron'
 
 test('empty state: no project yet → ProjectStartPanel shown', async ({ page }) => {
   await page.evaluate(() => {
-    window.localStorage.removeItem('jarvis.projectId')
+    window.localStorage.removeItem('atelier.projectId')
   })
   await page.reload()
   await page.waitForLoadState('domcontentloaded')
@@ -18,7 +18,7 @@ test('create project → CheckpointRouter mounts + sidebar shows company', async
   page
 }) => {
   await page.evaluate(() => {
-    window.localStorage.removeItem('jarvis.projectId')
+    window.localStorage.removeItem('atelier.projectId')
   })
   await page.reload()
   await page.waitForLoadState('domcontentloaded')

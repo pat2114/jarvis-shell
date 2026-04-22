@@ -2,8 +2,6 @@
 
 A desktop app that produces 30-second advertising videos for small businesses through a guided, checkpoint-driven workflow. Electron + React + TypeScript.
 
-*(Repo name remains `jarvis-shell` — historical; the app ships as "Atelier".)*
-
 ## Recommended IDE Setup
 
 - [VSCode](https://code.visualstudio.com/) + [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) + [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)

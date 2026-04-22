@@ -1,7 +1,7 @@
 import { invokeClaudeAgent } from '../llm/claudeCli'
 import type { RepairErrorReport, RepairPlan } from './types'
 
-const APPEND_SYSTEM = `You are an autonomous repair agent for the Atelier codebase (internal repo name: jarvis-shell) you have been dropped into. Your task is to implement a specific fix described in a repair plan.
+const APPEND_SYSTEM = `You are an autonomous repair agent for the Atelier codebase you have been dropped into. Your task is to implement a specific fix described in a repair plan.
 
 Workflow you MUST follow, in order:
 1. Read the plan carefully. Read the files it mentions.
