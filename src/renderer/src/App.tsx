@@ -5,6 +5,9 @@ import type { PanelRegistry } from '@/layout/types'
 import { ThemeProvider } from '@/theme/ThemeProvider'
 import { PipelineProvider, usePipeline } from '@/pipeline/usePipeline'
 import { SetupProvider, useSetup } from '@/setup/useSetup'
+import { MaintenanceProvider } from '@/maintenance/MaintenanceProvider'
+import { MaintenanceOverlay } from '@/maintenance/MaintenanceOverlay'
+import { ErrorBoundary } from '@/maintenance/ErrorBoundary'
 import { PipelinePanel } from '@/panels/PipelinePanel'
 import { ProjectStartPanel } from '@/panels/ProjectStartPanel'
 import { CheckpointRouter } from '@/panels/CheckpointRouter'
@@ -79,17 +82,22 @@ function App(): React.JSX.Element {
 
   return (
     <ThemeProvider>
-      <SetupProvider>
-        <PipelineProvider>
-          <div className="relative h-full w-full">
-            <LayoutRenderer
-              template={templates[templateId]}
-              panels={isPreview ? previewPanels : mainPanels}
-            />
-            {isPreview && <PreviewActionBar templateId={previewId} />}
-          </div>
-        </PipelineProvider>
-      </SetupProvider>
+      <ErrorBoundary>
+        <MaintenanceProvider>
+          <SetupProvider>
+            <PipelineProvider>
+              <div className="relative h-full w-full">
+                <LayoutRenderer
+                  template={templates[templateId]}
+                  panels={isPreview ? previewPanels : mainPanels}
+                />
+                {isPreview && <PreviewActionBar templateId={previewId} />}
+              </div>
+            </PipelineProvider>
+          </SetupProvider>
+          {!isPreview && <MaintenanceOverlay />}
+        </MaintenanceProvider>
+      </ErrorBoundary>
     </ThemeProvider>
   )
 }

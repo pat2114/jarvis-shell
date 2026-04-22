@@ -64,6 +64,29 @@ const api = {
       messages: { role: 'user' | 'assistant'; text: string }[]
       userMessage: string
     }): Promise<unknown> => ipcRenderer.invoke('help:send-message', payload)
+  },
+  update: {
+    getState: (): Promise<unknown> => ipcRenderer.invoke('update:get-state'),
+    check: (): void => ipcRenderer.send('update:check'),
+    install: (): void => ipcRenderer.send('update:install'),
+    onState: (cb: (state: unknown) => void): (() => void) => {
+      const listener = (_: unknown, state: unknown): void => cb(state)
+      ipcRenderer.on('update:state', listener)
+      return () => ipcRenderer.removeListener('update:state', listener)
+    }
+  },
+  telemetry: {
+    report: (input: {
+      source: 'error-boundary' | 'agent-error' | 'main-process' | 'repair-escalation'
+      message: string
+      stack?: string
+      stepId?: string
+      projectId?: string
+      context?: Record<string, unknown>
+    }): Promise<unknown> => ipcRenderer.invoke('telemetry:report', input)
+  },
+  log: {
+    tail: (lines?: number): Promise<unknown> => ipcRenderer.invoke('log:tail', lines)
   }
 }
 

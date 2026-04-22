@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Loader2, PartyPopper, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -82,6 +82,28 @@ const AGENT_RUNNING_COPY: Record<string, { title: string; description: string }>
   }
 }
 
+function useReportAgentError(
+  projectId: string | null | undefined,
+  stepId: string | null | undefined,
+  status: string | undefined,
+  errorMessage: string | null | undefined
+): void {
+  useEffect(() => {
+    if (status !== 'error') return
+    if (!errorMessage) return
+    try {
+      void window.api?.telemetry?.report({
+        source: 'agent-error',
+        message: errorMessage,
+        stepId: stepId ?? undefined,
+        projectId: projectId ?? undefined
+      })
+    } catch {
+      /* empty */
+    }
+  }, [status, errorMessage, stepId, projectId])
+}
+
 export function CheckpointRouter(): React.JSX.Element {
   const { state, loading, approve, revise, resetProject } = usePipeline()
 
@@ -91,13 +113,20 @@ export function CheckpointRouter(): React.JSX.Element {
     [currentStep]
   )
 
+  const record: StepRecord | undefined = state?.steps.find(
+    (s) => s.stepId === state?.project.currentStepId
+  )
+
+  useReportAgentError(
+    state?.project.id,
+    record?.stepId,
+    record?.status,
+    record?.errorMessage
+  )
+
   if (loading || !state) {
     return <CenterShim label="Loading project…" />
   }
-
-  const record: StepRecord | undefined = state.steps.find(
-    (s) => s.stepId === state.project.currentStepId
-  )
 
   if (!stepDef || !record) {
     return <CenterShim label="Starting up…" />

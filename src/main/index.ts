@@ -5,6 +5,15 @@ import icon from '../../resources/icon.png?asset'
 import { interpretTheme, type TokenState } from './llm/themeAgent'
 import { askHelp, type HelpMessage } from './llm/helpAgent'
 import {
+  checkForUpdatesManual,
+  getUpdateState,
+  initUpdater,
+  installDownloadedUpdate,
+  shutdown as shutdownUpdater
+} from './update/manager'
+import { sendTelemetry, type TelemetryReport } from './telemetry/report'
+import { logger, tailLog } from './log/logger'
+import {
   approveCheckpoint,
   executeStep,
   getProjectState,
@@ -185,6 +194,26 @@ app.whenReady().then(() => {
     broadcastProjectUpdate(projectId)
   })
 
+  initUpdater(() => mainWindow)
+
+  ipcMain.handle('update:get-state', async () => getUpdateState())
+  ipcMain.on('update:check', () => checkForUpdatesManual())
+  ipcMain.on('update:install', () => installDownloadedUpdate())
+
+  ipcMain.handle(
+    'telemetry:report',
+    async (_evt, input: Omit<TelemetryReport, 'id' | 'appVersion' | 'timestamp'>) => {
+      await sendTelemetry(input)
+      return { ok: true as const }
+    }
+  )
+
+  ipcMain.handle('log:tail', async (_evt, lines?: number) => {
+    return tailLog(typeof lines === 'number' ? lines : 200)
+  })
+
+  void logger.info('app', 'main process started', { version: app.getVersion() })
+
   ipcMain.handle('setup:run-checks', async () => {
     return runChecks()
   })
@@ -237,7 +266,24 @@ app.whenReady().then(() => {
 })
 
 app.on('window-all-closed', () => {
+  shutdownUpdater()
   if (process.platform !== 'darwin') {
     app.quit()
   }
+})
+
+process.on('uncaughtException', (err) => {
+  void logger.error('uncaughtException', err.message, { stack: err.stack })
+  void sendTelemetry({
+    source: 'main-process',
+    message: err.message,
+    stack: err.stack
+  })
+})
+
+process.on('unhandledRejection', (reason) => {
+  const msg = reason instanceof Error ? reason.message : String(reason)
+  const stack = reason instanceof Error ? reason.stack : undefined
+  void logger.error('unhandledRejection', msg, { stack })
+  void sendTelemetry({ source: 'main-process', message: msg, stack })
 })
